@@ -1,0 +1,88 @@
+<domain type='kvm'>
+    <name>AyameStandard</name>
+    <metadata>
+        <libosinfo:libosinfo xmlns:libosinfo="http://libosinfo.org/xmlns/libvirt/domain/1.0">
+            <libosinfo:os id="http://netbsd.org/netbsd/8.0"/>
+        </libosinfo:libosinfo>
+    </metadata>
+    <memory unit='KiB'>2097152</memory>
+    <currentMemory unit='KiB'>2097152</currentMemory>
+    <vcpu placement='static'>2</vcpu>
+    <sysinfo type='smbios'>
+        <chassis>
+            <entry name='asset'>PRODUCT_KEY={{ ayame_product_key }},MODE=standalone</entry>
+        </chassis>
+    </sysinfo>
+    <os>
+        <type arch='x86_64' machine='pc-i440fx-rhel7.6.0'>hvm</type>
+        <boot dev='hd'/>
+        <smbios mode='sysinfo'/>
+    </os>
+    <cpu mode='host-passthrough' check='none' migratable='on'/>
+    <devices>
+        <emulator>/usr/libexec/qemu-kvm</emulator>
+        <disk type='file' device='disk'>
+            <driver name='qemu' type='qcow2'/>
+            <source file='/var/lib/libvirt/images/seilx86.qcow2'/>
+            <target dev='sda' bus='sata'/>
+            <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+        </disk>
+        <controller type='usb' index='0' model='ich9-ehci1'>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x7'/>
+        </controller>
+        <controller type='usb' index='0' model='ich9-uhci1'>
+            <master startport='0'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0' multifunction='on'/>
+        </controller>
+        <controller type='usb' index='0' model='ich9-uhci2'>
+            <master startport='2'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x1'/>
+        </controller>
+        <controller type='usb' index='0' model='ich9-uhci3'>
+            <master startport='4'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x2'/>
+        </controller>
+        <controller type='pci' index='0' model='pci-root'/>
+        <controller type='sata' index='0'>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
+        </controller>
+        <interface type='bridge'>
+            <source bridge='bridgeEx0'/>
+            <model type='virtio'/>
+            <driver name='vhost' queues='2'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+        </interface>
+        <interface type='bridge'>
+            <source bridge='bridgeMGMT0'/>
+            <model type='virtio'/>
+            <driver name='vhost' queues='2'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+        </interface>
+        <interface type='bridge'>
+            <source bridge='bridgeIn0'/>
+            <model type='virtio'/>
+            <driver name='vhost' queues='2'/>
+            <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
+        </interface>
+        <serial type='pty'>
+            <target type='isa-serial' port='0'>
+                <model name='isa-serial'/>
+            </target>
+        </serial>
+        <console type='pty'>
+            <target type='serial' port='0'/>
+        </console>
+        <input type='tablet' bus='usb'>
+            <address type='usb' bus='0' port='1'/>
+        </input>
+        <input type='keyboard' bus='ps2'/>
+        <graphics type='vnc' port='-1' autoport='yes'>
+            <listen type='address'/>
+        </graphics>
+        <audio id='1' type='none'/>
+        <video>
+            <model type='vga' vram='16384' heads='1' primary='yes'/>
+        </video>
+    </devices>
+</domain>
+

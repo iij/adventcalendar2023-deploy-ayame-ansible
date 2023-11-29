@@ -1,0 +1,6 @@
+---
+ansible_host: 192.0.2.10
+MGMT_eth_address: 192.0.2.10/24
+MGMT_eth_gateway: 192.0.2.1
+ayame_image_name: Ayame0
+ayame_product_key: Ayame_no_product_key_iretene

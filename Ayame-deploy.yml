@@ -1,0 +1,9 @@
+- name: KVM
+  hosts: N100-0
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Ayame-deploy
+      include_role:
+        name: Ayame-deploy

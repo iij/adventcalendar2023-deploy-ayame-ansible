@@ -1,0 +1,148 @@
+- name: setup MGMT
+  include_role:
+    name: linux-system-roles.network
+
+  vars:
+    network_connections:
+      - name: MGMTBridge0
+        type: bridge
+        interface_name: bridgeMGMT0
+        state: up
+        ip:
+          auto6: yes
+          address:
+            - "{{ MGMT_eth_address }}"
+          route:
+            - network: 0.0.0.0
+              prefix: 0
+              gateway: "{{ MGMT_eth_gateway }}"
+              metric: 3000
+        zone: internal
+
+      - name: enp2s0
+        interface_name: enp2s0
+        type: ethernet
+        controller: MGMTBridge0
+        port_type: bridge
+        state: up
+
+- name: create bound dev
+  include_role:
+    name: linux-system-roles.network
+
+  vars:
+    network_connections:
+      - name: InternalBridge0
+        type: bridge
+        interface_name: bridgeIn0
+        state: up
+        zone: internal
+        autoconnect: true
+        ip:
+          dhcp4: yes
+          auto6: yes
+
+      - name: bond0
+        type: bond
+        interface_name: "{{ bond_dev0_name }}"
+        port_type: bridge
+        controller: InternalBridge0
+        bond:
+          mode: 802.3ad
+        state: up
+
+      - name: bond0-eth2
+        interface_name: enp3s0
+        type: ethernet
+        controller: "{{ bond_dev0_name }}"
+        state: up
+
+      - name: bond0-eth3
+        interface_name: enp4s0
+        type: ethernet
+        controller: "{{ bond_dev0_name }}"
+        state: up
+
+
+- name: setup external
+  include_role:
+    name: linux-system-roles.network
+
+  vars:
+    network_connections:
+      - name: ExternalBridge0
+        type: bridge
+        interface_name: bridgeEx0
+        state: up
+        zone: public
+        autoconnect: true
+        ip:
+          dhcp4: false
+          auto6: yes
+
+      - name: enp1s0
+        interface_name: enp1s0
+        type: ethernet
+        controller: ExternalBridge0
+        port_type: bridge
+        state: up
+
+- name: install kvm
+  become: true
+  package:
+    name:
+      - qemu-kvm
+      - libvirt
+      - virt-install
+      - virt-viewer
+
+- name: start libvirtd
+  systemd:
+    name: libvirtd
+    enabled: true
+    state: started
+
+- name: distribute Ayame image
+  copy:
+    dest: "/var/lib/libvirt/images/seilx86.qcow2"
+    src: "var/lib/libvirt/images/seilx86.qcow2"
+    force: false
+  when:  ayame_product_key is defined
+
+- name: set Ayame image permission
+  file:
+    path: "/var/lib/libvirt/images/seilx86.qcow2"
+    owner: qemu
+    group: qemu
+    force: false
+    mode: 0711
+    seuser: system_u
+    serole: object_r
+    setype: svirt_image_t
+  when:  ayame_product_key is defined
+
+- name: Define a VM
+  community.libvirt.virt:
+    command: define
+    xml: "{{ lookup('template', 'ayame-vm-template.xml.j2') }}"
+  when:  ayame_product_key is defined
+
+- name: Set autostart for a VM
+  community.libvirt.virt:
+    name: "AyameStandard"
+    autostart: yes
+  when:  ayame_product_key is defined
+
+- name: Start a VM
+  community.libvirt.virt:
+    name: "AyameStandard"
+    state: running
+  when:  ayame_product_key is defined
+
+- name: setup cockpit
+  become: true
+  package:
+    name:
+      - cockpit-machines
+      - cockpit-bridge
+

@@ -1,0 +1,19 @@
+---
+N100host:
+  hosts:
+    N100-0:
+    N100-1:
+RP4:
+  hosts:
+    RP440:
+    RP480:
+    RP481:
+OCI:
+  hosts:
+    OCI-amd00:
+    OCI-amd01:
+
+CentOS9:
+  children:
+    N100host:
+    OCI:
